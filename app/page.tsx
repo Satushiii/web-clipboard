@@ -1,42 +1,60 @@
-"use client";
-
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
 import { doc, getDoc, setDoc } from "firebase/firestore";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 
-export default function Home() {
-  const [text, setText] = useState("");
-  const docRef = doc(db, "clipboard", "shared");
+export default function ClipboardApp() {
+  const [sendText, setSendText] = useState("");
+  const [receiveText, setReceiveText] = useState("");
 
+  // Fetch text from Firebase
   useEffect(() => {
-    async function fetchText() {
+    const fetchText = async () => {
+      const docRef = doc(db, "clipboard", "shared");
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
-        setText(docSnap.data().content);
+        setReceiveText(docSnap.data().content);
       }
-    }
+    };
     fetchText();
   }, []);
 
-  const handleSave = async () => {
-    await setDoc(docRef, { content: text });
-    toast.success("Text saved! Accessible on any device.");
+  // Send text to Firebase
+  const handleSend = async () => {
+    const docRef = doc(db, "clipboard", "shared");
+    await setDoc(docRef, { content: sendText });
+    setSendText("");
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-100">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100 p-4">
       <h1 className="text-2xl font-bold mb-4">Web Clipboard</h1>
-      <textarea
-        className="w-full max-w-md h-40 p-2 border rounded-lg"
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      <button onClick={handleSave} className="mt-2 px-4 py-2 bg-blue-500 text-white rounded-lg">
-        Save Text
-      </button>
-      <ToastContainer position="bottom-center" />
+
+      {/* Send Box */}
+      <div className="w-full max-w-md mb-4 bg-white shadow-md rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-2">Send Text</h2>
+        <textarea
+          value={sendText}
+          onChange={(e) => setSendText(e.target.value)}
+          placeholder="Type here..."
+          className="w-full p-2 border rounded"
+        />
+        <button
+          onClick={handleSend}
+          className="mt-2 w-full bg-blue-500 text-white py-2 rounded hover:bg-blue-600"
+        >
+          Send
+        </button>
+      </div>
+
+      {/* Receive Box */}
+      <div className="w-full max-w-md bg-white shadow-md rounded-lg p-4">
+        <h2 className="text-lg font-semibold mb-2">Received Text</h2>
+        <textarea
+          value={receiveText}
+          readOnly
+          className="w-full p-2 border rounded bg-gray-200"
+        />
+      </div>
     </div>
   );
 }
