@@ -1,5 +1,4 @@
-"use client";  // ✅ Add this line at the top
-
+"use client";
 
 import { useState, useEffect } from "react";
 import { db } from "./firebase";
